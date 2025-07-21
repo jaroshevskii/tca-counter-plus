@@ -21,6 +21,7 @@ struct CounterFeature {
     enum Action {
         case decrementButtonTapped
         case factButtonTapped
+        case countChanged(Int)
         case factResponse(String)
         case incrementButtonTapped
         case timerTick
@@ -36,12 +37,23 @@ struct CounterFeature {
         Reduce { state, action in
             switch action {
             case .decrementButtonTapped:
-                state.count -= 1
-                return .none
+                return .send(.countChanged(state.count - 1))
                 
             case .incrementButtonTapped:
-                state.count += 1
-                return .none
+                return .send(.countChanged(state.count + 1))
+                
+            case let .countChanged(count):
+                state.count = count
+                
+                guard state.isTimerRunning else { return .none }
+                
+                return .cancel(id: CancelID.timer)
+                    .concatenate(with: .run { send in
+                        for await _ in clock.timer(interval: .seconds(1)) {
+                            await send(.timerTick)
+                        }
+                    })
+                    .cancellable(id: CancelID.timer)
 
             case .factButtonTapped:
                 state.fact = nil
@@ -57,7 +69,6 @@ struct CounterFeature {
             
             case .timerTick:
                 state.count += 1
-                state.fact = nil
                 return .none
                 
             case .toggleTimerButtonTapped:
