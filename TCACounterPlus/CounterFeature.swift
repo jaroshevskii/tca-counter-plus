@@ -26,6 +26,7 @@ struct CounterFeature {
         case incrementButtonTapped
         case timerTick
         case toggleTimerButtonTapped
+        case resetButtonTapped
     }
     
     enum CancelID { case timer }
@@ -42,18 +43,23 @@ struct CounterFeature {
             case .incrementButtonTapped:
                 return .send(.countChanged(state.count + 1))
                 
+            case .resetButtonTapped:
+                return .send(.countChanged(0))
+                
             case let .countChanged(count):
                 state.count = count
                 
                 guard state.isTimerRunning else { return .none }
                 
-                return .cancel(id: CancelID.timer)
-                    .concatenate(with: .run { send in
+                return .concatenate(
+                    .cancel(id: CancelID.timer),
+                    .run { send in
                         for await _ in clock.timer(interval: .seconds(1)) {
                             await send(.timerTick)
                         }
-                    })
+                    }
                     .cancellable(id: CancelID.timer)
+                )
 
             case .factButtonTapped:
                 state.fact = nil
@@ -106,6 +112,15 @@ struct CounterView: View {
                 .padding()
                 .background(Color.black.opacity(0.1))
                 .cornerRadius(10)
+                
+                Button("Reset") {
+                    store.send(.resetButtonTapped)
+                }
+                .font(.largeTitle)
+                .padding()
+                .background(Color.black.opacity(0.1))
+                .cornerRadius(10)
+                
                 Button("-") {
                     store.send(.decrementButtonTapped)
                 }

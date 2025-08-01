@@ -27,6 +27,15 @@ struct CounterFeatureTests {
         await store.receive(\.countChanged) {
             $0.count = 0
         }
+        
+        await store.send(.incrementButtonTapped)
+        await store.receive(\.countChanged) {
+            $0.count = 1
+        }
+        await store.send(.resetButtonTapped)
+        await store.receive(\.countChanged) {
+            $0.count = 0
+        }
     }
     
     @Test
