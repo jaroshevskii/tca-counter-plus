@@ -80,7 +80,7 @@ struct CounterFeatureTests {
     }
     
     @Test
-    func toggleRestartTimerSwitch() async {
+    func toggleTimerRestartOnChange() async {
         let store = TestStore(initialState: CounterFeature.State()) {
             CounterFeature()
         }
@@ -95,7 +95,7 @@ struct CounterFeatureTests {
     }
 
     @Test
-    func restartTimerSwitchBehavior() async {
+    func timerRestartOnChangeBehavior() async {
         let clock = TestClock()
         
         let store = TestStore(initialState: CounterFeature.State()) {
