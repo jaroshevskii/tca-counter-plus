@@ -16,6 +16,7 @@ struct CounterFeature {
         var fact: String?
         var isLoading = false
         var isTimerRunning = false
+        var shouldRestartTimerOnChange = true
     }
 
     enum Action {
@@ -27,6 +28,7 @@ struct CounterFeature {
         case timerTick
         case toggleTimerButtonTapped
         case resetButtonTapped
+        case toggleRestartTimerSwitch
     }
     
     enum CancelID { case timer }
@@ -49,7 +51,7 @@ struct CounterFeature {
             case let .countChanged(count):
                 state.count = count
                 
-                guard state.isTimerRunning else { return .none }
+                guard state.isTimerRunning && state.shouldRestartTimerOnChange else { return .none }
                 
                 return .concatenate(
                     .cancel(id: CancelID.timer),
@@ -89,6 +91,10 @@ struct CounterFeature {
                 } else {
                     return .cancel(id: CancelID.timer)
                 }
+                
+            case .toggleRestartTimerSwitch:
+                state.shouldRestartTimerOnChange.toggle()
+                return .none
             }
         }
     }
@@ -131,7 +137,7 @@ struct CounterView: View {
             }
             
             Button(store.isTimerRunning ? "Stop timer" : "Start timer") {
-              store.send(.toggleTimerButtonTapped)
+                store.send(.toggleTimerButtonTapped)
             }
             .font(.largeTitle)
             .padding()
@@ -155,6 +161,12 @@ struct CounterView: View {
                     .padding()
                 
             }
+            
+            Toggle("Restart timer on change", isOn: Binding(
+                get: { store.shouldRestartTimerOnChange },
+                set: { _ in store.send(.toggleRestartTimerSwitch) }
+            ))
+            .padding()
         }
     }
 }
