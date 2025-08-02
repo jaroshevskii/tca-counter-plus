@@ -78,4 +78,67 @@ struct CounterFeatureTests {
             $0.fact = "0 is a good number."
         }
     }
+    
+    @Test
+    func toggleRestartTimerSwitch() async {
+        let store = TestStore(initialState: CounterFeature.State()) {
+            CounterFeature()
+        }
+        
+        await store.send(.toggleRestartTimerSwitch) {
+            $0.shouldRestartTimerOnChange = false
+        }
+        
+        await store.send(.toggleRestartTimerSwitch) {
+            $0.shouldRestartTimerOnChange = true
+        }
+    }
+
+    @Test
+    func restartTimerSwitchBehavior() async {
+        let clock = TestClock()
+        
+        let store = TestStore(initialState: CounterFeature.State()) {
+            CounterFeature()
+        } withDependencies: {
+            $0.continuousClock = clock
+        }
+        
+        await store.send(.toggleTimerButtonTapped) {
+            $0.isTimerRunning = true
+        }
+        
+        await clock.advance(by: .milliseconds(500))
+        
+        await store.send(.incrementButtonTapped)
+        await store.receive(\.countChanged) {
+            $0.count = 1
+        }
+        
+        await clock.advance(by: .milliseconds(500))
+        await clock.advance(by: .milliseconds(500))
+        await store.receive(\.timerTick) {
+            $0.count = 2
+        }
+        
+        await store.send(.toggleRestartTimerSwitch) {
+            $0.shouldRestartTimerOnChange = false
+        }
+        
+        await clock.advance(by: .milliseconds(500))
+        
+        await store.send(.incrementButtonTapped)
+        await store.receive(\.countChanged) {
+            $0.count = 3
+        }
+        
+        await clock.advance(by: .milliseconds(500))
+        await store.receive(\.timerTick) {
+            $0.count = 4
+        }
+        
+        await store.send(.toggleTimerButtonTapped) {
+            $0.isTimerRunning = false
+        }
+    }
 }
