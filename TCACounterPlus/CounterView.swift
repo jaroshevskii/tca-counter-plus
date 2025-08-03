@@ -21,10 +21,13 @@ struct CounterView: View {
             HStack(spacing: 16) {
                 GlassButton(label: "-", action: { store.send(.decrementButtonTapped) })
                 
-                GlassButton(label: "Reset", action: { store.send(.resetButtonTapped) })
+                if store.count != 0 {
+                    GlassButton(label: "Reset", action: { store.send(.resetButtonTapped) })
+                }
                 
                 GlassButton(label: "+", action: { store.send(.incrementButtonTapped) })
             }
+            .animation(.smooth(extraBounce: 0.25), value: store.count)
             
             GlassButton(
                 label: store.isTimerRunning ? "Stop Timer" : "Start Timer",
