@@ -17,15 +17,23 @@ struct CounterView: View {
                 .font(.system(size: 60, weight: .bold))
                 .padding()
                 .frame(maxWidth: .infinity)
+                .contentTransition(.numericText())
+                .animation(.default, value: store.count)
             
             HStack(spacing: 16) {
-                GlassButton(label: "-", action: { store.send(.decrementButtonTapped) })
+                GlassButton(label: "-", action: {
+                    store.send(.decrementButtonTapped)
+                })
                 
                 if store.count != 0 {
-                    GlassButton(label: "Reset", action: { store.send(.resetButtonTapped) })
+                    GlassButton(label: "Reset", action: {
+                        store.send(.resetButtonTapped, animation: .default)
+                    })
                 }
                 
-                GlassButton(label: "+", action: { store.send(.incrementButtonTapped) })
+                GlassButton(label: "+", action: {
+                    store.send(.incrementButtonTapped, animation: .default)
+                })
             }
             .animation(.smooth(extraBounce: 0.25), value: store.count)
             
