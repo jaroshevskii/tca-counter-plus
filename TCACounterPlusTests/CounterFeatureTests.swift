@@ -80,6 +80,18 @@ struct CounterFeatureTests {
     }
     
     @Test
+    func reset() async {
+        let store = TestStore(initialState: CounterFeature.State(count: 5)) {
+            CounterFeature()
+        }
+        
+        await store.send(.resetButtonTapped)
+        await store.receive(\.countChanged) {
+            $0.count = 0
+        }
+    }
+    
+    @Test
     func toggleTimerRestartOnChange() async {
         let store = TestStore(initialState: CounterFeature.State()) {
             CounterFeature()
